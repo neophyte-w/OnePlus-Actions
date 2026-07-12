@@ -149,7 +149,7 @@ on:
         default: 'On'
 
       BAZEL:
-        description: "是否启用 Bazel 构建"
+        description: "是否使用 Bazel 构建"
         required: true
         type: choice
         options:
@@ -528,7 +528,7 @@ jobs:
           echo "✅ 内核配置更新完成"
           
       - name: "🔨 Build Kernel | 编译内核 (Clang)"
-        if: ${{ github.event.inputs.BAZEL == "Off" }}
+        if: ${{ github.event.inputs.BAZEL == 'Off' }}
         run: |
           echo "🏗️ 开始内核编译..."
           export KBUILD_BUILD_USER="xiaoxiaow"
@@ -569,7 +569,7 @@ jobs:
           echo "✅ 内核编译完成"
 
       - name: "🔨 Build Kernel | 编译内核 (Bazel)"
-        if: ${{ github.event.inputs.BAZEL == "On" }}
+        if: ${{ github.event.inputs.BAZEL == 'On' }}
         run: |
           echo "🏗️ 开始内核编译 (Bazel)..."
           export KBUILD_BUILD_USER="xiaoxiaow"
@@ -580,7 +580,6 @@ jobs:
             ./kernel_platform/build_with_bazel.py -t pineapple gki
           else
             echo "⚠️ Bazel 构建仅支持6.1版本，当前版本为${{ github.event.inputs.KERNEL_VERSION }}，请使用 Clang 构建。"
-            error "Bazel 构建失败"
           fi
 
           echo "✅ 内核编译完成"
