@@ -147,6 +147,15 @@ on:
           - 'On'
           - 'Off'
         default: 'On'
+
+      BAZEL:
+        description: "是否启用 Bazel 构建"
+        required: true
+        type: choice
+        options:
+          - 'On'
+          - 'Off'
+        default: 'Off'
          
 jobs:
   build:
@@ -518,7 +527,8 @@ jobs:
           sed -i 's/check_defconfig//' ./common/build.config.gki
           echo "✅ 内核配置更新完成"
           
-      - name: "🔨 Build Kernel | 编译内核"
+      - name: "🔨 Build Kernel | 编译内核 (Clang)"
+        if: ${{ github.event.inputs.BAZEL == "Off" }}
         run: |
           echo "🏗️ 开始内核编译..."
           export KBUILD_BUILD_USER="xiaoxiaow"
@@ -557,7 +567,24 @@ jobs:
           
           ccache -s
           echo "✅ 内核编译完成"
-          
+
+      - name: "🔨 Build Kernel | 编译内核 (Bazel)"
+        if: ${{ github.event.inputs.BAZEL == "On" }}
+        run: |
+          echo "🏗️ 开始内核编译 (Bazel)..."
+          export KBUILD_BUILD_USER="xiaoxiaow"
+          export KBUILD_BUILD_HOST="xiaoxiaow_build"
+
+          cd kernel_workspace
+          if [ "${{ github.event.inputs.KERNEL_VERSION }}" == "6.1" ]; then
+            ./kernel_platform/build_with_bazel.py -t pineapple gki
+          else
+            echo "⚠️ Bazel 构建仅支持6.1版本，当前版本为${{ github.event.inputs.KERNEL_VERSION }}，请使用 Clang 构建。"
+            error "Bazel 构建失败"
+          fi
+
+          echo "✅ 内核编译完成"
+
       - name: "📦 Package Kernel | 打包内核"
         run: |
           echo "📦 准备AnyKernel3打包环境..."
